@@ -1,0 +1,24 @@
+# SMTP Server settings
+$smtpServer = "smtp2go.com"
+$smtpPort = 2525 # Use 587 for TLS (or 465 for SSL)
+$smtpUser = "Dormabackup@piermontproperties.com"  # Your email address
+$smtpPassword = "tm7TyToViqnuPYxB"  # Your Gmail app password (create one if using 2FA)
+$fromEmail = "Dormabackup@piermontproperties.com"  # Your email address
+$toEmail = "alerts@kzam4technology.com"  # Recipient's email address
+
+# Email content
+$subject = "SQL Server Backup Notification"
+$body = "The SQL Server backup job completed successfully."
+
+# Create the SMTP client object and set authentication details
+$smtpClient = New-Object System.Net.Mail.SmtpClient($smtpServer, $smtpPort)
+$smtpClient.EnableSsl = $true  # Enable SSL for security
+$smtpClient.Credentials = New-Object System.Net.NetworkCredential($smtpUser, $smtpPassword)
+
+# Create the email message
+$mailMessage = New-Object System.Net.Mail.MailMessage($fromEmail, $toEmail, $subject, $body)
+
+# Send the email
+$smtpClient.Send($mailMessage)
+
+Write-Host "Email sent successfully."
