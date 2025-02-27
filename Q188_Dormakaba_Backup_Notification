@@ -1,10 +1,10 @@
 # SMTP Server settings
 $smtpServer = "smtp2go.com"
 $smtpPort = 2525 # Use 587 for TLS (or 465 for SSL)
-$smtpUser = "Dormabackup@piermontproperties.com"  # Your email address
-$smtpPassword = "tm7TyToViqnuPYxB"  # Your Gmail app password (create one if using 2FA)
-$fromEmail = "Dormabackup@piermontproperties.com"  # Your email address
-$toEmail = "alerts@kzam4technology.com"  # Recipient's email address
+$smtpUser = ""
+$smtpPassword = "" 
+$fromEmail = ""
+$toEmail = ""
 
 # Email content
 $subject = "SQL Server Backup Notification"
