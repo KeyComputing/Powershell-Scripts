@@ -1,40 +1,25 @@
-# Execute WMIC command in CMD to filter unquoted auto-start services
-$services = cmd /c 'wmic service get Name,PathName,DisplayName,StartMode | findstr /i auto | findstr /i /v "C:\Windows\\" | findstr /i /v "\""' 
+# Query the system for unquoted service paths
+#$services = Get-WmiObject -Query "SELECT Name, PathName FROM Win32_Service WHERE StartMode = 'Auto'"
 
-# Convert output into an array
-$services = $services -split "`r`n"
+foreach ($service in $services) {
+    $serviceName = $service.Name
+    $imagePath = $service.PathName.Trim()
 
-foreach ($line in $services) {
-    # Skip empty lines
-    if ($line -match "^\s*$") { continue }
+    Write-Output ("Service Name: " + $serviceName)
+    Write-Output ("Image Path: " + $imagePath)
 
-    # Split based on excessive spaces (handles inconsistent WMIC spacing)
-    $parts = $line -split '\s{2,}'
+    # Ensure the path is unquoted and contains spaces
+    if ($imagePath -match "\s" -and $imagePath -notmatch '^".*"$') {
+        Write-Output ("Fixing unquoted path for service: " + $serviceName)
 
-    if ($parts.Count -ge 2) {
-        $serviceName = $parts[0].Trim()
-        $imagePath = $parts[1].Trim()
+        # Add quotes around the path
+        $quotedPath = '"' + $imagePath + '"'
 
-        # Ensure the path is unquoted and contains spaces
-        if ($imagePath -match "\s" -and $imagePath -notmatch '^".*"$') {
-            Write-Output "🔍 Fixing unquoted path for service: $serviceName"
+        # Update the registry with the corrected path
+        $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
+        Set-ItemProperty -Path $registryPath -Name ImagePath -Value $quotedPath
 
-            # Add quotes around the path
-            $quotedPath = '"' + $imagePath + '"'
-
-            # Build the correct registry path
-            $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Services\$serviceName"
-
-            # Check if registry path exists before modifying
-            if (Test-Path $registryPath) {
-                # Perform the registry update
-                Set-ItemProperty -Path $registryPath -Name ImagePath -Value $quotedPath -Verbose
-                Write-Output "✅ Updated service '$serviceName' with quoted path: $quotedPath"
-            } else {
-                Write-Output "⚠️ Registry path not found: $registryPath (Skipping)"
-            }
-        }
+        Write-Output ("Updated service '" + $serviceName + "' with quoted path: " + $quotedPath)
     }
 }
-
-Write-Output "✅ All unquoted service paths have been fixed."
+Write-Output "All unquoted service paths have been fixed."
